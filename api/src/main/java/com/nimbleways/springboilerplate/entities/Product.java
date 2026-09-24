@@ -1,5 +1,6 @@
 package com.nimbleways.springboilerplate.entities;
 
+import com.nimbleways.springboilerplate.enumeration.ProductType;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -25,7 +26,8 @@ public class Product {
     private Integer available;
 
     @Column(name = "type")
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private ProductType type;
 
     @Column(name = "name")
     private String name;
@@ -38,4 +40,25 @@ public class Product {
 
     @Column(name = "season_end_date")
     private LocalDate seasonEndDate;
+
+    public boolean isAvailable(LocalDate today) {
+        return switch (type) {
+            case NORMAL -> available > 0;
+
+            case SEASONAL -> available > 0
+                    && today.isAfter(seasonStartDate)
+                    && today.isBefore(seasonEndDate);
+
+            case EXPIRABLE -> available > 0
+                    && expiryDate.isAfter(today);
+        };
+    }
+
+    public void decreaseAvailability() {
+        available--;
+    }
+
+    public void markUnavailable() {
+        available = 0;
+    }
 }
